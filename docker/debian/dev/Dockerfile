@@ -1,5 +1,9 @@
 FROM debian:12.15
 
+LABEL maintainer="Alan Wei" \
+    org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
+    org.opencontainers.image.created="2026-09-12"
+
 WORKDIR /data
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
