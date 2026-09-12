@@ -1,0 +1,106 @@
+name: Build and push changed Docker images
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "docker/**/Dockerfile"
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Find changed Dockerfiles
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.changed.outputs.images }}
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create image matrix
+        id: changed
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          empty_tree="$(git hash-object -t tree /dev/null)"
+          zero_sha="0000000000000000000000000000000000000000"
+
+          if [[ "${BEFORE_SHA}" == "${zero_sha}" ]]; then
+            base="${empty_tree}"
+          else
+            if ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              git fetch --no-tags --depth=1 origin "${BEFORE_SHA}" || true
+            fi
+
+            if git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              base="${BEFORE_SHA}"
+            elif git cat-file -e "${AFTER_SHA}^" 2>/dev/null; then
+              echo "Warning: the push base is unavailable; comparing with the previous commit."
+              base="${AFTER_SHA}^"
+            else
+              echo "Warning: no parent commit is available; comparing with the empty tree."
+              base="${empty_tree}"
+            fi
+          fi
+
+          mapfile -t dockerfiles < <(
+            git diff --name-only --diff-filter=ACMRT "${base}" "${AFTER_SHA}" -- \
+              ':(glob)docker/**/Dockerfile' | LC_ALL=C sort -u
+          )
+
+          images=()
+          for dockerfile in "${dockerfiles[@]}"; do
+            [[ -f "${dockerfile}" ]] || continue
+
+            if [[ "${dockerfile}" =~ ^docker/([^/]+)/([^/]+)/Dockerfile$ ]]; then
+              images+=("${BASH_REMATCH[1]}:${BASH_REMATCH[2]}")
+            else
+              echo "Invalid Dockerfile path: ${dockerfile}" >&2
+              echo "Expected docker/<image>/<version>/Dockerfile." >&2
+              exit 1
+            fi
+          done
+
+          images_json="$(printf '%s\n' "${images[@]}" | jq -R -s -c \
+            'split("\n") | map(select(length > 0))')"
+          echo "images=${images_json}" >> "${GITHUB_OUTPUT}"
+          echo "Changed images: ${images_json}"
+
+  build-and-push:
+    name: Build and push ${{ matrix.image }}
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
+    runs-on: ubuntu-latest
+    environment: dev_auth
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.changes.outputs.images) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: alanway
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build image
+        env:
+          IMAGE_TAG: ${{ matrix.image }}
+        run: ./scripts/d.sh build --tag "${IMAGE_TAG}"
+
+      - name: Push image to Docker Hub
+        env:
+          IMAGE_TAG: ${{ matrix.image }}
+        run: ./scripts/d.sh push-hub --tag "${IMAGE_TAG}"
