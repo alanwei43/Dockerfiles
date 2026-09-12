@@ -3,7 +3,7 @@ FROM debian:12.15
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-12" \
-    org.opencontainers.image.updated="2026-09-12"
+    org.opencontainers.image.version="v1"
 
 WORKDIR /data
 RUN apt-get update \
