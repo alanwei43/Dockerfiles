@@ -133,6 +133,10 @@ build_images() {
         printf '构建镜像 %s\n' "${image_tag}"
         (
             cd -- "${image_dir}"
+            if [[ -f init.sh ]]; then
+                printf '执行初始化脚本 %s\n' "${image_dir}/init.sh"
+                bash ./init.sh
+            fi
             docker build --tag "${image_tag}" --file Dockerfile ./
         )
     done
