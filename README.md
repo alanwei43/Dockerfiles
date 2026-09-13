@@ -16,6 +16,14 @@ docker pull alanway/dev:codex-claude-code
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
 ```
 
+#### 本地测试使用
+```shell
+docker run --rm -it --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config-machine.toml,readonly registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
+
+# 以下命令在容器内执行
+# cp ~/.codex/config-machine.toml /root/.codex/config.toml
+```
+
 ### `dev:happy-server`
 
 [Happy](https://github.com/slopus/happy) 项目的自托管服务端镜像。构建时获取 Happy 主分支源码，并使用项目提供的 `Dockerfile.server` 构建服务端。
