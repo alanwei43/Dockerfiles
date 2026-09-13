@@ -48,6 +48,32 @@ docker pull alanway/dev:frp-mihomo
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:frp-mihomo
 ```
 
+### `dev:dev-container`
+
+基于 Ubuntu `24.04` 的 AMD64 通用开发环境镜像，预装 code-server `v4.137.0`（浏览器中使用 VS Code）、OpenCode `v1.18.30`、Node.js `v24.21.0`、Python 3（含 pip 与 uv `0.12.13`）、OpenJDK 1.8（Temurin `8u504-b01`）以及 Apache Maven `3.6.3`。apt、pip、uv 源已配置为清华大学开源软件镜像站，npm 源配置为 npmmirror。
+
+```shell
+# Docker Hub
+docker pull alanway/dev:dev-container
+
+# 阿里云容器镜像服务
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:dev-container
+```
+
+code-server 使用 `8080` 端口，OpenCode Web 使用 `8090` 端口。默认不启用认证；不要将未设置密码的端口暴露到公网。可分别通过 `PASSWORD` 和 `OPENCODE_SERVER_PASSWORD` 设置两个服务的登录密码：
+
+```shell
+docker run --rm -d \
+    --publish 0.0.0.0:8085:8080 \
+    --publish 0.0.0.0:8095:8090 \
+    --env PASSWORD="change-me" \
+    --env OPENCODE_SERVER_PASSWORD="change-me-too" \
+    --mount type=bind,source="$(pwd)",target=/app \
+    alanway/dev:dev-container
+```
+
+如需使用 code-server 配置文件，可将其挂载到 `/data/config.yaml`。挂载整个 `/data` 目录也不会遮蔽镜像的实际启动脚本。
+
 ### `os:alpine-3.11.6`
 
 基于 Alpine Linux `3.11.6`，将 APK 软件源替换为清华大学开源软件镜像站，适合国内网络环境使用。
