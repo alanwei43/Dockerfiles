@@ -1,0 +1,31 @@
+# 完整配置请参考 config-sample.toml
+
+model = "gpt-5.6-sol" # 或者是gpt-5.6-terra、gpt-5.6-luna，你也可以使用任何我们支持的模型
+model_provider = "cliproxyapi"
+
+# 无需确认是否执行操作，危险指令，初次接触codex不建议开启，移除#号即可开启
+# approval_policy = "never"
+
+# 沙箱模式超高权限，危险指令，初次接触codex不建议开启，移除#号即可开启
+# sandbox_mode = "danger-full-access"
+
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "high"
+
+experimental_realtime_webrtc_call_base_url = "https://your_cli_proxy_domain/v1" # Codex App 语音聊天 功能需要使用 WebRTC，若不使用语音聊天功能，可不配置此项
+experimental_realtime_ws_base_url = "https://your_cli_proxy_domain/v1" # Codex App 语音聊天功能需要使用 WebRTC，若不使用语音聊天功能，可不配置此项
+service_tier = "default"
+
+[model_providers.cliproxyapi]
+base_url = "https://your_cli_proxy_domain/v1"
+experimental_bearer_token = "<token>" # 这里修改为你在 CLIProxyAPI 中为 Codex 创建的 API Key
+name = "OpenAI"
+wire_api = "responses"
+requires_openai_auth = true
+supports_websockets = true # 按需要选择是否开启websockets
+
+[tui.keymap.global]
+open_transcript = "ctrl-shift-t"
+
+[tui]
+vim_mode_default = true

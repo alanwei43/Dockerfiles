@@ -3,14 +3,14 @@ FROM debian:12.15
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v2"
+    org.opencontainers.image.version="v4"
 
 ARG CODEX_VERSION="0.154.0"
 ARG CLAUDE_CODE_VERSION="2.1.270"
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates curl gzip tar; \
+    apt-get install -y --no-install-recommends ca-certificates curl gzip tar vim; \
     download_dir="$(mktemp -d)"; \
     curl --fail --location \
         --output "${download_dir}/codex-code-mode-host.tar.gz" \
@@ -46,3 +46,7 @@ RUN set -eux; \
         /usr/local/bin/claude \
         /root/.local/bin/; \
     rm -rf "${download_dir}" /var/lib/apt/lists/*
+
+COPY .claude.json /root/.claude.json
+COPY .claude/ /root/.claude/
+COPY .codex/ /root/.codex/
