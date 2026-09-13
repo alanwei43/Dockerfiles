@@ -32,6 +32,7 @@ RUN set -eux; \
         unzip \
         vim \
         xz-utils \
+        sqlite3 \
         zip; \
     download_dir="$(mktemp -d)"; \
     curl --fail --location \
