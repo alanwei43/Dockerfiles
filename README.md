@@ -84,6 +84,39 @@ docker pull alanway/runtime:python-3.12
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/runtime:python-3.12
 ```
 
+### `service:caddy-webdav`
+
+基于 Caddy `2.11.4` 官方镜像，使用 xcaddy 编译并加入 [caddy-webdav](https://github.com/mholt/caddy-webdav) WebDAV 处理模块。
+
+```shell
+# Docker Hub
+docker pull alanway/service:caddy-webdav
+
+# 阿里云容器镜像服务
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/service:caddy-webdav
+```
+
+使用时挂载 Caddyfile 和可写的数据目录。例如：
+
+```Caddyfile
+{
+    order webdav before file_server
+}
+
+http:// {
+    root * /data/webdav
+    webdav
+}
+```
+
+```shell
+docker run --rm \
+    --publish 127.0.0.1:8080:80 \
+    --mount type=bind,source="$(pwd)/Caddyfile",target=/etc/caddy/Caddyfile,readonly \
+    --mount type=bind,source="$(pwd)/data",target=/data/webdav \
+    alanway/service:caddy-webdav
+```
+
 ## 目录规划
 
 - `docker/os` 存放 Alpine、Ubuntu、Debian 等基础 OS 镜像
