@@ -36,16 +36,16 @@ docker pull alanway/dev:happy-server
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:happy-server
 ```
 
-### `dev:network-tools`
+### `dev:frp-mihomo`
 
 基于 Debian 12 的网络工具镜像，预装 Mihomo `v1.19.30` 以及 FRP `v0.71.0` 的 `frpc`、`frps`。
 
 ```shell
 # Docker Hub
-docker pull alanway/dev:network-tools
+docker pull alanway/dev:frp-mihomo
 
 # 阿里云容器镜像服务
-docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:network-tools
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:frp-mihomo
 ```
 
 ### `os:alpine-3.11.6`
