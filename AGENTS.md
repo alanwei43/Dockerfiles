@@ -31,3 +31,4 @@
 
 - 修改 Dockerfile 文件时，如果 Dockerfile 同级目录下有 README.md 文件，需要阅读并遵守 README.md 文件中的描述和约定，再修改 Dockerfile 文件。
 - 修改 Dockerfile 后，仅执行不依赖网络的静态检查，不要执行在线构建验证，包括任何需要联网拉取基础镜像、构建阶段镜像或镜像元数据的命令。
+- 每次新增 Dockerfile ，需要同步修改项目根目录的 `README.md` 文件，把新增的镜像信息补充到 **镜像列表** 章节。
