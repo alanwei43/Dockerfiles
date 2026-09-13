@@ -12,7 +12,7 @@
 
 ## 安装要求
 - 需要把 node/npm/npx/uv/uvx/opencode 等从压缩包安装的命令，在解压之后使用软链形式添加到 /usr/local/bin 目录下
-- 安装完依赖，把系统mirror、npm mirror、uv/pip mirror 设置成清华大学的 mirror。
+- 安装完依赖，把系统mirror、uv/pip mirror 设置成清华大学的 mirror，npm mirror 设置成 npmmirror.com。
 
 ## 镜像设置
 
@@ -26,7 +26,9 @@
 
 ### 启动脚本
 
-把启动脚本安装到 `/usr/local/bin/entrypoint.sh`，并创建软链接 `/data/entrypoint.sh`。镜像默认执行 `/usr/local/bin/entrypoint.sh`，避免挂载 `/data` 时启动脚本被遮蔽。该脚本需要同时启动 code-server 和 opencode web；任一服务退出时，停止另一个服务并退出容器：
+把启动脚本安装到 `/usr/local/bin/entrypoint.sh`，并创建软链接 `/data/entrypoint.sh`。镜像通过 `CMD` 默认执行 `/usr/local/bin/entrypoint.sh`，避免挂载 `/data` 时启动脚本被遮蔽。该脚本需要同时启动 code-server 和 opencode web；任一服务退出时，停止另一个服务并退出容器：
+
+启动脚本是通过 `CMD`（而非 `ENTRYPOINT`）执行的，因此在 `docker run` 时可直接传入其他命令/脚本整体替换默认行为，例如 `docker run --rm -it alanway/dev:dev-container bash` 会直接进入 bash，而不启动 code-server 和 opencode web。
 
 **code-server服务**
 

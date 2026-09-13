@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v1"
+    org.opencontainers.image.version="v3"
 
 ARG CODE_SERVER_VERSION="4.137.0"
 ARG NODE_VERSION="24.21.0"
@@ -107,4 +107,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
         && curl --silent --show-error --output /dev/null --max-time 2 http://127.0.0.1:8090/ \
         || exit 1
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/usr/local/bin/entrypoint.sh"]

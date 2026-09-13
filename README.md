@@ -66,8 +66,6 @@ code-server 使用 `8080` 端口，OpenCode Web 使用 `8090` 端口。默认不
 docker run --rm -d \
     --publish 0.0.0.0:8085:8080 \
     --publish 0.0.0.0:8095:8090 \
-    --env PASSWORD="change-me" \
-    --env OPENCODE_SERVER_PASSWORD="change-me-too" \
     --mount type=bind,source="$(pwd)",target=/app \
     alanway/dev:dev-container
 ```
