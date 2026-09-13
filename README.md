@@ -4,6 +4,18 @@
 
 ## 镜像列表
 
+### `dev:codex-claude-code`
+
+基于 Debian `12.15` 的 AI 编程助手镜像，预装 OpenAI Codex CLI `v0.154.0`（含 `codex-code-mode-host` 与 `bwrap`）以及 Claude Code `v2.1.270`。
+
+```shell
+# Docker Hub
+docker pull alanway/dev:codex-claude-code
+
+# 阿里云容器镜像服务
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
+```
+
 ### `dev:happy-server`
 
 [Happy](https://github.com/slopus/happy) 项目的自托管服务端镜像。构建时获取 Happy 主分支源码，并使用项目提供的 `Dockerfile.server` 构建服务端。

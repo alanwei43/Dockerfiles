@@ -3,7 +3,7 @@ FROM debian:12.15
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v4"
+    org.opencontainers.image.version="v5"
 
 ARG CODEX_VERSION="0.154.0"
 ARG CLAUDE_CODE_VERSION="2.1.270"
@@ -50,3 +50,5 @@ RUN set -eux; \
 COPY .claude.json /root/.claude.json
 COPY .claude/ /root/.claude/
 COPY .codex/ /root/.codex/
+
+RUN chmod 0755 /root/.codex/hooks/*.sh
