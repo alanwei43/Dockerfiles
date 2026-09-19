@@ -21,6 +21,13 @@ docker pull alanway/dev:codex-claude-code
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
 ```
 
+#### 本地使用示例
+
+```shell
+docker run --rm -it registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code uv --version
+docker run --rm -it registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code node --version
+```
+
 #### 挂载物理机的 Claude Code 配置（只读）
 ```shell
 docker run --rm -it \
