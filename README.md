@@ -23,26 +23,30 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
 
 #### 本地测试使用
 ```shell
-docker run --rm -it --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config-machine.toml,readonly registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
+docker run --rm -it \
+    --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config-machine.toml,readonly \
+    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
 
 # 以下命令在容器内执行
 # cp ~/.codex/config-machine.toml /root/.codex/config.toml
 ```
 
-#### 挂载物理机的 Claude Code 配置（读写）
+#### 挂载物理机的 Claude Code 配置（只读）
 ```shell
 docker run --rm -it \
-    --mount type=bind,source=$HOME/.claude.json,target=/root/.claude.json \
-    --mount type=bind,source=$HOME/.claude/settings.json,target=/root/.claude/settings.json \
-    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
+    --mount type=bind,source=$HOME/.claude.json,target=/root/.claude-readonly.json,readonly \
+    --mount type=bind,source=$HOME/.claude/settings.json,target=/root/.claude/settings-readonly.json,readonly \
+    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code \
+    bash -c "cp /root/.claude-readonly.json /root/.claude.json && cp /root/.claude/settings-readonly.json /root/.claude/settings.json && bash"
 ```
 
-#### 挂载物理机的 Codex 配置（读写）
+#### 挂载物理机的 Codex 配置（只读）
 ```shell
 docker run --rm -it \
-    --mount type=bind,source=$HOME/.codex/auth.json,target=/root/.codex/auth.json \
-    --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config.toml \
-    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
+    --mount type=bind,source=$HOME/.codex/auth.json,target=/root/.codex/auth-readonly.json,readonly \
+    --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config-readonly.toml,readonly \
+    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code \
+    bash -c "cp /root/.codex/auth-readonly.json /root/.codex/auth.json && cp /root/.codex/config-readonly.toml /root/.codex/config.toml && bash"
 ```
 
 ### `dev:happy-server`
