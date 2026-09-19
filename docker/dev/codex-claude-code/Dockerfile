@@ -3,7 +3,7 @@ FROM debian:12.15
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v6"
+    org.opencontainers.image.version="v7"
 
 ARG CODEX_VERSION="0.154.0"
 ARG CLAUDE_CODE_VERSION="2.1.270"
@@ -40,6 +40,7 @@ RUN set -eux; \
     ln --symbolic /opt/node/bin/corepack /usr/local/bin/corepack; \
     ln --symbolic /opt/uv/uv /usr/local/bin/uv; \
     ln --symbolic /opt/uv/uvx /usr/local/bin/uvx; \
+    ln --symbolic /usr/bin/python3 /usr/bin/python; \
     curl --fail --location \
         --output "${download_dir}/codex-code-mode-host.tar.gz" \
         "https://github.com/openai/codex/releases/download/rust-v${CODEX_VERSION}/codex-code-mode-host-x86_64-unknown-linux-musl.tar.gz"; \
