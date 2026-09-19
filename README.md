@@ -6,7 +6,12 @@
 
 ### `dev:codex-claude-code`
 
-基于 Debian `12.15` 的 AI 编程助手镜像，预装 OpenAI Codex CLI `v0.154.0`（含 `codex-code-mode-host` 与 `bwrap`）以及 Claude Code `v2.1.270`。
+基于 Debian `12.15` 的 AI 编程助手镜像，预装以下开发者工具:
+- OpenAI Codex CLI `v0.154.0`（含 `codex-code-mode-host` 与 `bwrap`）
+- Claude Code `v2.1.270`
+- Node.js `24.21.0`
+- uv `0.12.13`
+- Python 3
 
 ```shell
 # Docker Hub
@@ -22,6 +27,22 @@ docker run --rm -it --mount type=bind,source=$HOME/.codex/config.toml,target=/ro
 
 # 以下命令在容器内执行
 # cp ~/.codex/config-machine.toml /root/.codex/config.toml
+```
+
+#### 挂载物理机的 Claude Code 配置（读写）
+```shell
+docker run --rm -it \
+    --mount type=bind,source=$HOME/.claude.json,target=/root/.claude.json \
+    --mount type=bind,source=$HOME/.claude/settings.json,target=/root/.claude/settings.json \
+    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
+```
+
+#### 挂载物理机的 Codex 配置（读写）
+```shell
+docker run --rm -it \
+    --mount type=bind,source=$HOME/.codex/auth.json,target=/root/.codex/auth.json \
+    --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config.toml \
+    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
 ```
 
 ### `dev:happy-server`
