@@ -21,16 +21,6 @@ docker pull alanway/dev:codex-claude-code
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
 ```
 
-#### 本地测试使用
-```shell
-docker run --rm -it \
-    --mount type=bind,source=$HOME/.codex/config.toml,target=/root/.codex/config-machine.toml,readonly \
-    registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code bash
-
-# 以下命令在容器内执行
-# cp ~/.codex/config-machine.toml /root/.codex/config.toml
-```
-
 #### 挂载物理机的 Claude Code 配置（只读）
 ```shell
 docker run --rm -it \
