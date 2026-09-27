@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v3"
+    org.opencontainers.image.version="v5"
 
 ARG CODE_SERVER_VERSION="4.137.0"
 ARG NODE_VERSION="24.21.0"
@@ -12,13 +12,23 @@ ARG TEMURIN_VERSION="8u504-b01"
 ARG TEMURIN_ARCHIVE_VERSION="8u504b01"
 ARG MAVEN_VERSION="3.6.3"
 ARG OPENCODE_VERSION="1.18.30"
+ARG TARGETARCH
 
 ENV JAVA_HOME="/opt/java" \
     MAVEN_HOME="/opt/maven" \
     PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple" \
     UV_DEFAULT_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
 
+# node_arch: Node.js 与 OpenCode 的发布命名（x64/arm64）
+# rust_arch: uv 的发布命名（x86_64/aarch64）
+# jdk_arch: Temurin JDK 的发布命名（x64/aarch64）
+# code-server deb 包名直接使用 TARGETARCH（amd64/arm64）
 RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64) node_arch=x64; rust_arch=x86_64; jdk_arch=x64 ;; \
+        arm64) node_arch=arm64; rust_arch=aarch64; jdk_arch=aarch64 ;; \
+        *) printf '不支持的架构: %s\n' "${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -37,23 +47,23 @@ RUN set -eux; \
     download_dir="$(mktemp -d)"; \
     curl --fail --location \
         --output "${download_dir}/code-server.deb" \
-        "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb"; \
+        "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${TARGETARCH}.deb"; \
     apt-get install -y --no-install-recommends "${download_dir}/code-server.deb"; \
     curl --fail --location \
         --output "${download_dir}/node.tar.xz" \
-        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"; \
+        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz"; \
     install -d -m 0755 /opt/node; \
     tar --extract --xz --file "${download_dir}/node.tar.xz" \
         --directory /opt/node --strip-components=1; \
     curl --fail --location \
         --output "${download_dir}/uv.tar.gz" \
-        "https://releases.astral.sh/github/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz"; \
+        "https://releases.astral.sh/github/uv/releases/download/${UV_VERSION}/uv-${rust_arch}-unknown-linux-gnu.tar.gz"; \
     install -d -m 0755 /opt/uv; \
     tar --extract --gzip --file "${download_dir}/uv.tar.gz" \
         --directory /opt/uv --strip-components=1; \
     curl --fail --location \
         --output "${download_dir}/temurin.tar.gz" \
-        "https://github.com/adoptium/temurin8-binaries/releases/download/jdk${TEMURIN_VERSION}/OpenJDK8U-jdk_x64_linux_hotspot_${TEMURIN_ARCHIVE_VERSION}.tar.gz"; \
+        "https://github.com/adoptium/temurin8-binaries/releases/download/jdk${TEMURIN_VERSION}/OpenJDK8U-jdk_${jdk_arch}_linux_hotspot_${TEMURIN_ARCHIVE_VERSION}.tar.gz"; \
     install -d -m 0755 "${JAVA_HOME}"; \
     tar --extract --gzip --file "${download_dir}/temurin.tar.gz" \
         --directory "${JAVA_HOME}" --strip-components=1; \
@@ -65,7 +75,7 @@ RUN set -eux; \
         --directory "${MAVEN_HOME}" --strip-components=1; \
     curl --fail --location \
         --output "${download_dir}/opencode.tar.gz" \
-        "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-x64.tar.gz"; \
+        "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-${node_arch}.tar.gz"; \
     install -d -m 0755 /opt/opencode; \
     tar --extract --gzip --file "${download_dir}/opencode.tar.gz" \
         --directory /opt/opencode; \

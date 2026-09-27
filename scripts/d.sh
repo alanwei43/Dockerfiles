@@ -9,15 +9,19 @@ DOCKER_DIR="${ROOT_DIR}/docker"
 HUB_NAMESPACE="alanway"
 ALIYUN_NAMESPACE="registry.cn-hangzhou.aliyuncs.com/alanwei"
 
+BUILDX_BUILDER="dockerfiles-builder"
+
 usage() {
     cat <<'EOF'
 用法: d.sh <command> [options]
 
 命令:
   list                    列出所有 Dockerfile 对应的 Docker tag
-  build [--tag TAG]       构建指定镜像；未指定 --tag 时构建全部镜像
-  push-hub [--tag TAG]    推送到 Docker Hub；未指定 --tag 时推送全部镜像
-  push-aliyun [--tag TAG] 推送到阿里云；未指定 --tag 时推送全部镜像
+  build [--tag TAG]       构建指定镜像到本地（单架构，跟随宿主机架构）；未指定 --tag 时构建全部镜像
+  release-amd64 [--tag TAG] 构建 amd64，推送 Docker Hub 的提交专属标签和阿里云正式标签
+  release-arm64 [--tag TAG] 构建 arm64，仅推送 Docker Hub 的提交专属标签
+  push-hub [--tag TAG]    推送本地镜像到 Docker Hub；未指定 --tag 时推送全部镜像
+  push-aliyun [--tag TAG] 推送本地镜像到阿里云；未指定 --tag 时推送全部镜像
   help                    显示此帮助文档
 
 选项:
@@ -142,6 +146,57 @@ build_images() {
     done
 }
 
+ensure_buildx_builder() {
+    if ! docker buildx inspect "${BUILDX_BUILDER}" >/dev/null 2>&1; then
+        printf '创建 buildx 构建器 %s\n' "${BUILDX_BUILDER}"
+        docker buildx create \
+            --name "${BUILDX_BUILDER}" \
+            --driver docker-container >/dev/null
+    fi
+}
+
+release_platform_images() {
+    local platform="$1"
+    local dockerfile
+    local image_dir
+    local image_tag
+    local hub_tag
+    local aliyun_tag
+    local revision="${GITHUB_SHA:-}"
+    local -a output_tags
+
+    if [[ -z "${revision}" ]]; then
+        revision="$(git -C "${ROOT_DIR}" rev-parse HEAD)"
+    fi
+    [[ "${revision}" =~ ^[0-9a-f]{40}$ ]] || die "提交 SHA 无效: ${revision}"
+    ensure_buildx_builder
+
+    for dockerfile in "${SELECTED_DOCKERFILES[@]}"; do
+        image_dir="$(dirname -- "${dockerfile}")"
+        image_tag="$(docker_tag_for_file "${dockerfile}")"
+        hub_tag="${HUB_NAMESPACE}/${image_tag}-${revision}-${platform}"
+        aliyun_tag="${ALIYUN_NAMESPACE}/${image_tag}"
+        output_tags=(--tag "${hub_tag}")
+        if [[ "${platform}" == amd64 ]]; then
+            output_tags+=(--tag "${aliyun_tag}")
+        fi
+        printf '构建并推送 %s (%s)\n' "${image_tag}" "${platform}"
+        (
+            cd -- "${image_dir}"
+            if [[ -f init.sh ]]; then
+                printf '执行初始化脚本 %s\n' "${image_dir}/init.sh"
+                bash ./init.sh
+            fi
+            docker buildx build \
+                --builder "${BUILDX_BUILDER}" \
+                --platform "linux/${platform}" \
+                "${output_tags[@]}" \
+                --push \
+                --file Dockerfile ./
+        )
+    done
+}
+
 push_images() {
     local namespace="$1"
     local dockerfile
@@ -173,12 +228,14 @@ main() {
             load_dockerfiles
             list_images
             ;;
-        build|push-hub|push-aliyun)
+        build|release-amd64|release-arm64|push-hub|push-aliyun)
             parse_tag_option "$@"
             load_dockerfiles
             select_dockerfiles "${TAG}"
             case "${command}" in
                 build) build_images ;;
+                release-amd64) release_platform_images amd64 ;;
+                release-arm64) release_platform_images arm64 ;;
                 push-hub) push_images "${HUB_NAMESPACE}" ;;
                 push-aliyun) push_images "${ALIYUN_NAMESPACE}" ;;
             esac

@@ -2,6 +2,10 @@
 
 个人 Dockerfile 集合。仓库会自动构建 `docker/` 目录下的镜像，并分别推送到 Docker Hub 和阿里云容器镜像服务。
 
+所有镜像均构建 `linux/amd64` 与 `linux/arm64` 双架构版本并推送到 Docker Hub，拉取时 Docker 会根据宿主机架构自动选择对应版本。阿里云容器镜像服务仅同步 `linux/amd64` 架构。
+
+`master` 分支的 Dockerfile 发生变化时，amd64 与 arm64 会在两个 GitHub Actions workflow 中并行构建。两边都成功后，第三个 workflow 发布 Docker Hub 的双架构标签；任一架构失败时，Docker Hub 原有标签保持不变。两个构建 workflow 也支持手动触发，手动触发时会构建全部镜像，需分别启动两边。
+
 ## 镜像列表
 
 ### `dev:codex-claude-code`
@@ -72,7 +76,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:frp-mihomo
 
 ### `dev:dev-container`
 
-基于 Ubuntu `24.04` 的 AMD64 通用开发环境镜像，预装 code-server `v4.137.0`（浏览器中使用 VS Code）、OpenCode `v1.18.30`、Node.js `v24.21.0`、Python 3（含 pip 与 uv `0.12.13`）、OpenJDK 1.8（Temurin `8u504-b01`）以及 Apache Maven `3.6.3`。apt、pip、uv 源已配置为清华大学开源软件镜像站，npm 源配置为 npmmirror。
+基于 Ubuntu `24.04` 的通用开发环境镜像，预装 code-server `v4.137.0`（浏览器中使用 VS Code）、OpenCode `v1.18.30`、Node.js `v24.21.0`、Python 3（含 pip 与 uv `0.12.13`）、OpenJDK 1.8（Temurin `8u504-b01`）以及 Apache Maven `3.6.3`。apt、pip、uv 源已配置为清华大学开源软件镜像站，npm 源配置为 npmmirror。
 
 ```shell
 # Docker Hub

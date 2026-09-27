@@ -1,0 +1,122 @@
+name: Publish multi-platform Docker manifests
+
+on:
+  workflow_run:
+    workflows:
+      - Build and push amd64 Docker images
+      - Build and push arm64 Docker images
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: publish-docker-manifests
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish Docker Hub manifests
+    if: github.event.workflow_run.head_branch == 'master'
+    runs-on: ubuntu-24.04
+    environment: dev_auth
+    steps:
+      - name: Check matching architecture run
+        id: eligible
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
+          SOURCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          if [[ "${SOURCE_SHA}" != "${current_sha}" ]]; then
+            echo "::notice::Skipping old commit ${SOURCE_SHA}; master is ${current_sha}."
+            exit 0
+          fi
+
+          if [[ "${SOURCE_CONCLUSION}" != success ]]; then
+            echo "::error::${SOURCE_WORKFLOW} finished with ${SOURCE_CONCLUSION}."
+            exit 1
+          fi
+
+          if [[ "${SOURCE_WORKFLOW}" == 'Build and push amd64 Docker images' ]]; then
+            other_workflow=push-docker-hub-arm64.yml
+          else
+            other_workflow=push-docker-hub.yml
+          fi
+
+          other_run="$(gh api -X GET \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/${other_workflow}/runs" \
+            -f head_sha="${SOURCE_SHA}" \
+            -f event="${SOURCE_EVENT}" \
+            -f per_page=100 \
+            --jq '.workflow_runs | map(select(.head_branch == "master")) | first | if . == null then "" else [.id, .status, (.conclusion // "")] | @tsv end')"
+          if [[ -z "${other_run}" ]]; then
+            echo "::notice::Waiting for ${other_workflow} on ${SOURCE_SHA}."
+            exit 0
+          fi
+
+          IFS=$'\t' read -r other_id other_status other_conclusion <<< "${other_run}"
+          if [[ "${other_status}" != completed ]]; then
+            echo "::notice::Waiting for run ${other_id} (${other_status})."
+            exit 0
+          fi
+          if [[ "${other_conclusion}" != success ]]; then
+            echo "::error::Run ${other_id} finished with ${other_conclusion}."
+            exit 1
+          fi
+
+          echo "ready=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Download image matrix
+        if: steps.eligible.outputs.ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: image-list
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Log in to Docker Hub
+        if: steps.eligible.outputs.ready == 'true'
+        uses: docker/login-action@v4
+        with:
+          username: alanway
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.eligible.outputs.ready == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Publish multi-platform tags
+        if: steps.eligible.outputs.ready == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          jq -e 'type == "array" and all(.[]; type == "string" and test("^[a-z0-9._-]+:[a-zA-Z0-9._-]+$"))' images.json >/dev/null
+          mapfile -t images < <(jq -r '.[]' images.json)
+
+          for image in "${images[@]}"; do
+            current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+            if [[ "${SOURCE_SHA}" != "${current_sha}" ]]; then
+              echo "::notice::Skipping remaining images; master is now ${current_sha}."
+              exit 0
+            fi
+
+            repository="${image%%:*}"
+            tag="${image#*:}"
+            docker buildx imagetools create \
+              --tag "alanway/${repository}:${tag}" \
+              "alanway/${repository}:${tag}-${SOURCE_SHA}-amd64" \
+              "alanway/${repository}:${tag}-${SOURCE_SHA}-arm64"
+          done

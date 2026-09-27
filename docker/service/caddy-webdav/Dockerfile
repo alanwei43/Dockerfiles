@@ -12,6 +12,6 @@ FROM caddy:${CADDY_VERSION}-alpine
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v1"
+    org.opencontainers.image.version="v3"
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

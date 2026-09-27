@@ -1,6 +1,13 @@
 基于 Ubuntu:24.04 创建镜像 dev-container, 需要集成常见开发环境（NodeJS、Python、JDK 1.8 + Maven）, 同时安装 code-server 用于使用VSCode进行开发。
 
-  需要下载安装一下服务：
+镜像构建 `linux/amd64` 与 `linux/arm64` 双架构，下载地址中的架构标识按构建目标架构（`TARGETARCH`）选择：
+
+- `x86_64` ↔ `aarch64`（uv）
+- `x64` ↔ `arm64`（Node.js 与 OpenCode）
+- `x64` ↔ `aarch64`（Temurin JDK）
+- `amd64` ↔ `arm64`（code-server deb 包）
+
+  需要下载安装一下服务（以下以 amd64 架构为例）：
 
   - 安装code-server: https://github.com/coder/code-server/releases/download/v4.137.0/code-server_4.137.0_amd64.deb
   - 安装NodeJS: https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz

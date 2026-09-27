@@ -1,6 +1,11 @@
 当前镜像基于 Debian:12.15 镜像创建，然后从 GitHub 官方仓库的 Release 下载并安装 Claude Code 和 Codex :
 
-- 需求下载的文件
+镜像构建 `linux/amd64` 与 `linux/arm64` 双架构，下载地址中的架构标识按构建目标架构（`TARGETARCH`）选择：
+
+- `x86_64` ↔ `aarch64`（uv 与 Codex 系列）
+- `x64` ↔ `arm64`（Node.js 与 Claude Code）
+
+- 需求下载的文件（以下以 amd64 架构为例）
   - https://github.com/openai/codex/releases/download/rust-v0.154.0/codex-code-mode-host-x86_64-unknown-linux-musl.tar.gz
   - https://github.com/openai/codex/releases/download/rust-v0.154.0/bwrap-x86_64-unknown-linux-musl.tar.gz
   - https://github.com/openai/codex/releases/download/rust-v0.154.0/codex-x86_64-unknown-linux-musl.tar.gz

@@ -3,7 +3,7 @@ FROM node:24
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-12" \
-    org.opencontainers.image.version="v1"
+    org.opencontainers.image.version="v3"
 
 ENV COREPACK_NPM_REGISTRY="https://registry.npmmirror.com"
 
