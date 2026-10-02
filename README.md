@@ -12,6 +12,7 @@
 - Node.js `24.21.0`
 - uv `0.12.13`
 - Python 3
+- Git
 
 ```shell
 # Docker Hub
@@ -26,6 +27,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code
 ```shell
 docker run --rm -it registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code uv --version
 docker run --rm -it registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code node --version
+docker run --rm -it registry.cn-hangzhou.aliyuncs.com/alanwei/dev:codex-claude-code git --version
 ```
 
 #### 挂载物理机的 Claude Code 配置（只读）

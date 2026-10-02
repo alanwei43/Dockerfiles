@@ -3,7 +3,7 @@ FROM debian:12.15
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-09-13" \
-    org.opencontainers.image.version="v7"
+    org.opencontainers.image.version="v8"
 
 ARG CODEX_VERSION="0.154.0"
 ARG CLAUDE_CODE_VERSION="2.1.270"
@@ -15,6 +15,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
+        git \
         gzip \
         python3 \
         python3-pip \
