@@ -6,7 +6,7 @@
 
 ### `dev:claude-in-one`
 
-基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux 和 Claude Code `2.1.270`。
+基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux 和 Claude Code `2.1.270`。构建完成后将 APT 软件源设置为清华大学开源软件镜像站。
 
 ```shell
 # Docker Hub

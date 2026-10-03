@@ -6,7 +6,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v1"
+    org.opencontainers.image.version="v4"
 
 ARG FNM_VERSION="1.39.0"
 ARG NODE_VERSION="24.21.0"
@@ -21,7 +21,7 @@ ENV FNM_DIR="/opt/fnm" \
     JAVA_HOME="/opt/java" \
     MAVEN_HOME="/opt/maven" \
     WEB_APP_DIR="/app" \
-    PATH="/opt/fnm/node-versions/v${NODE_VERSION}/installation/bin:/opt/java/bin:/opt/maven/bin:${PATH}"
+    PATH="/opt/java/bin:/opt/maven/bin:${PATH}"
 
 RUN set -eux; \
     apt-get update; \
@@ -77,19 +77,20 @@ RUN set -eux; \
     install -m 0755 "${download_dir}/claude" /usr/local/bin/claude; \
     ln --symbolic /opt/uv/uv /usr/local/bin/uv; \
     ln --symbolic /opt/uv/uvx /usr/local/bin/uvx; \
-    printf '%s\n' 'eval "$(fnm env --use-on-cd --shell bash)"' \
-        >> /etc/bash.bashrc; \
-    install -d -m 0755 /app /data/config /root/.claude; \
+    install -d -m 0755 /app /data/config /etc/uv; \
     rm -rf "${download_dir}" /var/lib/apt/lists/*
 
 COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
-COPY .claude.json /root/.claude.json
-COPY .claude/settings.json /root/.claude/settings.json
+COPY ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
+COPY home/ /root/
+COPY home/pip.conf /etc/pip.conf
+COPY home/uv.toml /etc/uv/uv.toml
 COPY code-server.yaml /data/config/code-server-example.yml
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod 0755 /usr/local/bin/entrypoint.sh; \
-    ln --symbolic /usr/local/bin/entrypoint.sh /data/entrypoint.sh
+    ln --symbolic /usr/local/bin/entrypoint.sh /data/entrypoint.sh; \
+    printf '%s\n' 'eval "$(fnm env --use-on-cd --shell bash)"' >> /root/.bashrc
 
 WORKDIR /data
 
