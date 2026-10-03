@@ -1,13 +1,11 @@
-ARG CADDY_VERSION="2.11.4"
-FROM caddy:${CADDY_VERSION} AS caddy
-
 FROM ubuntu:24.04
 
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v4"
+    org.opencontainers.image.version="v5"
 
+ARG CADDY_VERSION="2.11.4"
 ARG FNM_VERSION="1.39.0"
 ARG NODE_VERSION="24.21.0"
 ARG UV_VERSION="0.12.13"
@@ -70,6 +68,12 @@ RUN set -eux; \
         "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb"; \
     apt-get install -y --no-install-recommends "${download_dir}/code-server.deb"; \
     curl --fail --location \
+        --output "${download_dir}/caddy.tar.gz" \
+        "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"; \
+    tar --extract --gzip --file "${download_dir}/caddy.tar.gz" \
+        --directory "${download_dir}" caddy; \
+    install -m 0755 "${download_dir}/caddy" /usr/local/bin/caddy; \
+    curl --fail --location \
         --output "${download_dir}/claude.tar.gz" \
         "https://github.com/anthropics/claude-code/releases/download/v${CLAUDE_CODE_VERSION}/claude-linux-x64.tar.gz"; \
     tar --extract --gzip --file "${download_dir}/claude.tar.gz" \
@@ -80,7 +84,6 @@ RUN set -eux; \
     install -d -m 0755 /app /data/config /etc/uv; \
     rm -rf "${download_dir}" /var/lib/apt/lists/*
 
-COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
 COPY ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
 COPY home/ /root/
 COPY home/pip.conf /etc/pip.conf
