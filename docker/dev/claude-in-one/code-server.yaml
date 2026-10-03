@@ -1,0 +1,94 @@
+# code-server v4.137.0 配置参考
+# 来源：https://github.com/coder/code-server/blob/v4.137.0/src/node/cli.ts
+# 配置键与同名命令行参数对应。注释项是可选示例，按需取消注释并修改值。
+# claude-in-one 会通过 --config /data/config/code-server.yml 加载配置，
+# 并在命令行传入 WEB_APP_DIR 作为工作目录。将本文件复制到
+# /data/config/code-server.yml 后，默认启动脚本才会启动 code-server。
+# 如需密码认证，将 auth 改为 password 并设置 PASSWORD 环境变量；
+# 不要把明文密码或令牌提交到仓库。
+
+# 基础服务
+bind-addr: 0.0.0.0:8080
+auth: none
+cert: false
+# password: "仅用于私有配置；优先使用 PASSWORD 环境变量"
+# hashed-password: "argon2 哈希；也可通过 HASHED_PASSWORD 环境变量提供"
+# cert: /path/to/cert.pem          # 不指定路径而启用时生成自签名证书
+# cert-key: /path/to/key.pem       # 使用已有证书时设置
+# cert-host: example.com           # 生成自签名证书时使用的主机名
+# socket: /run/code-server.sock    # Unix socket；设置后忽略 bind-addr
+# socket-fd: 3                     # 已绑定的文件描述符，如 systemd socket activation
+# socket-mode: "0600"             # Unix socket 权限
+# trusted-origins:                # 信任的请求 Origin；通常应正确配置反向代理
+#   - https://example.com
+
+# 目录与会话
+# user-data-dir: /data/code-server
+# extensions-dir: /data/code-server/extensions
+# builtin-extensions-dir: /path/to/builtin/extensions
+# session-socket: /run/code-server-session.sock
+# idle-timeout-seconds: 3600       # 空闲后退出的秒数；设置值必须大于 60
+# reconnection-grace-time: "10800" # 断线重连宽限时间，单位秒
+# cookie-suffix: example           # 避免同域名下多个实例的 Cookie 冲突
+
+# 反向代理与端口转发
+# proxy-domain:                   # 按子域名代理工作区端口，可写多个
+#   - example.com
+# abs-proxy-base-path: /code      # 仅影响内置 /absproxy/<port> 路由
+# skip-auth-preflight: true       # 放行端口代理的 CORS 预检请求
+# disable-proxy: true             # 关闭内置端口代理路由
+# code-server 自身没有 baseUrl 配置。若从 /code/ 访问，反向代理必须
+# 去掉 /code 前缀并转发 WebSocket；不要用 abs-proxy-base-path 代替。
+# VSCODE_PROXY_URI 是环境变量，不是本 YAML 的配置键。
+
+# 访问与功能开关
+# disable-telemetry: true
+# disable-update-check: true
+# disable-file-downloads: true
+# disable-file-uploads: true
+# disable-workspace-trust: true
+# disable-getting-started-override: true
+# link-protection-trusted-domains:
+#   - https://example.com
+# enable:                         # 实验性功能名称；当前版本无公开实验功能
+#   - feature-name
+# enable-proposed-api:            # 为指定扩展启用 proposed API
+#   - publisher.extension
+
+# 界面与日志
+# locale: zh-cn
+# app-name: code-server
+# i18n: /path/to/translations.json
+# welcome-text: "Welcome"        # 已弃用
+# log: info                       # trace、debug、info、warn 或 error
+# verbose: true                   # 启用详细日志
+# open: true                      # 在本机浏览器中打开，远程部署通常不适用
+# ignore-last-opened: true        # 启动空白窗口
+# new-window: true                # 强制打开新窗口
+# reuse-window: true              # 复用已有窗口
+# vscode-option:                  # 直接传给 VS Code 服务端的选项
+#   - enable-sandbox
+#   - agents=true
+
+# 扩展管理和一次性命令；通常通过 CLI 调用，不建议常驻配置启用
+# install-extension:
+#   - publisher.extension
+# uninstall-extension:
+#   - publisher.extension
+# list-extensions: true
+# locate-extension:
+#   - publisher.extension
+# show-versions: true
+# category: programming-languages # 与列出扩展等命令配合使用
+# force: true                     # 安装扩展时跳过确认
+# json: true                      # 命令结果输出 JSON
+# github-auth: "令牌"              # 优先通过 GITHUB_TOKEN 环境变量提供
+
+# 命令自身的控制参数；不应写成生效配置
+# config: /path/to/config.yaml    # 配置文件路径，用 --config 指定
+# help: true
+# version: true
+# host: 0.0.0.0                    # 已弃用，使用 bind-addr
+# port: 8080                      # 已弃用，使用 bind-addr
+# _:                              # 位置参数，例如工作目录；由启动命令传入
+#   - /app

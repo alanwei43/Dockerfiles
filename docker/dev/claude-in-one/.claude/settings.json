@@ -1,0 +1,17 @@
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "<API_KEY>",
+    "ANTHROPIC_BASE_URL": "<BASE_URL>",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "API_TIMEOUT_MS": "600000",
+    "ANTHROPIC_MODEL": "glm-latest[1m]",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "glm-latest[1m]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-latest[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-latest[1m]",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-latest[1m]"
+  },
+  "language": "Chinese",
+  "skipDangerousModePermissionPrompt": true,
+  "editorMode": "vim"
+}

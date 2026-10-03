@@ -4,6 +4,20 @@
 
 ## 镜像列表
 
+### `dev:claude-in-one`
+
+基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux 和 Claude Code `2.1.270`。
+
+```shell
+# Docker Hub
+docker pull alanway/dev:claude-in-one
+
+# 阿里云容器镜像服务
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
+```
+
+默认启动脚本会在配置文件存在时启动 code-server（`/data/config/code-server.yml`）和 Caddy（`/data/config/Caddyfile`），并在 `/app/control.sh` 存在时执行其 `start` 命令。工作目录可通过 `WEB_APP_DIR` 环境变量覆盖。配置示例位于镜像内的 `/data/config/code-server-example.yml`，默认不启用认证，部署时应自行配置访问控制。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动脚本。
+
 ### `dev:codex-claude-code`
 
 基于 Debian `12.15` 的 AI 编程助手镜像，预装以下开发者工具:
