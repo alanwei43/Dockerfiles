@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v6"
+    org.opencontainers.image.version="v7"
 
 ARG CADDY_VERSION="2.11.4"
 ARG FNM_VERSION="1.39.0"
@@ -19,7 +19,7 @@ ENV FNM_DIR="/opt/fnm" \
     JAVA_HOME="/opt/java" \
     MAVEN_HOME="/opt/maven" \
     WEB_APP_DIR="/app" \
-    PATH="/opt/java/bin:/opt/maven/bin:${PATH}"
+    PATH="/opt/fnm/aliases/default/bin:/opt/java/bin:/opt/maven/bin:${PATH}"
 
 RUN set -eux; \
     apt-get update; \
@@ -81,19 +81,26 @@ RUN set -eux; \
     install -m 0755 "${download_dir}/claude" /usr/local/bin/claude; \
     ln --symbolic /opt/uv/uv /usr/local/bin/uv; \
     ln --symbolic /opt/uv/uvx /usr/local/bin/uvx; \
+    useradd --create-home --shell /bin/bash dev; \
     install -d -m 0755 /app /data/config /etc/uv; \
     rm -rf "${download_dir}" /var/lib/apt/lists/*
 
 COPY ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
-COPY home/ /root/
+COPY --chown=dev:dev home/ /home/dev/
 COPY home/pip.conf /etc/pip.conf
 COPY home/uv.toml /etc/uv/uv.toml
 COPY code-server.yaml /data/config/code-server-example.yml
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod 0755 /usr/local/bin/entrypoint.sh; \
+RUN set -eux; \
+    chmod 0755 /usr/local/bin/entrypoint.sh; \
     ln --symbolic /usr/local/bin/entrypoint.sh /data/entrypoint.sh; \
-    printf '%s\n' 'eval "$(fnm env --use-on-cd --shell bash)"' >> /root/.bashrc
+    printf '%s\n' 'eval "$(fnm env --use-on-cd --shell bash)"' >> /home/dev/.bashrc; \
+    chown -R dev:dev /app /data /opt/fnm
+
+ENV HOME="/home/dev"
+
+USER dev
 
 WORKDIR /data
 
