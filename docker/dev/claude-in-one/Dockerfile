@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v7"
+    org.opencontainers.image.version="v8"
 
 ARG CADDY_VERSION="2.11.4"
 ARG FNM_VERSION="1.39.0"
@@ -27,6 +27,8 @@ RUN set -eux; \
         ca-certificates \
         curl \
         git \
+        openssh-client \
+        openssh-server \
         python3 \
         python3-pip \
         python-is-python3 \
