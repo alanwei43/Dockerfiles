@@ -6,7 +6,11 @@
 
 ### `dev:claude-in-one`
 
-基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux 和 Claude Code `2.1.270`。构建完成后将 APT 软件源设置为清华大学开源软件镜像站。
+基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.270`。构建完成后将 APT 软件源设置为清华大学开源软件镜像站。
+
+可使用 `ssh`、`scp` 和 `sftp` 命令；需要远程登录容器时，需自行配置并启动 `sshd`。
+
+默认以非 root 用户 `dev` 运行，用户主目录和预置配置位于 `/home/dev`。`/app`、`/data` 和 fnm 安装目录归 `dev` 所有；使用宿主机目录挂载时，需要保证 `dev` 对挂载目录有相应的读写权限。
 
 ```shell
 # Docker Hub
@@ -17,6 +21,23 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 ```
 
 默认启动脚本会在配置文件存在时启动 code-server（`/data/config/code-server.yml`）和 Caddy（`/data/config/Caddyfile`），并在 `/app/control.sh` 存在时执行其 `start` 命令。工作目录可通过 `WEB_APP_DIR` 环境变量覆盖。配置示例位于镜像内的 `/data/config/code-server-example.yml`，默认不启用认证，部署时应自行配置访问控制。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动脚本。
+
+### `dev:claude-multica`
+
+基于 `alanway/dev:claude-in-one` 的 AMD64 镜像，增加 [Multica CLI `v0.7.1`](https://github.com/multica-ai/multica/releases/tag/v0.7.1)。构建时从官方 GitHub Releases 下载 Linux AMD64 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
+
+继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
+
+```shell
+# Docker Hub
+docker pull alanway/dev:claude-multica
+
+# 阿里云容器镜像服务
+docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-multica
+
+# 调用 Multica CLI
+docker run --rm alanway/dev:claude-multica multica --help
+```
 
 ### `dev:codex-claude-code`
 
@@ -178,6 +199,26 @@ docker run --rm \
     --mount type=bind,source="$(pwd)/data",target=/data/webdav \
     alanway/service:caddy-webdav
 ```
+
+## 本地构建与推送
+
+使用 `scripts/d.sh` 列出、构建或推送镜像：
+
+```shell
+# 列出可用的 Docker tag
+./scripts/d.sh list
+
+# 构建指定镜像
+./scripts/d.sh build --tag runtime:node-24
+
+# 推送指定镜像到 Docker Hub
+./scripts/d.sh push-hub --tag runtime:node-24
+
+# 推送指定镜像到阿里云容器镜像服务
+./scripts/d.sh push-aliyun --tag runtime:node-24
+```
+
+`build`、`push-hub` 和 `push-aliyun` 必须提供非空的 `--tag TAG`（也支持 `--tag=TAG`），每次只能指定一个 tag。省略 `--tag` 会报错退出，不会批量构建或推送所有镜像。tag 格式为 `<分类>:<目录名>`，对应 `docker/<分类>/<目录名>/Dockerfile`，可通过 `list` 查看。`list` 和 `help` 不需要 `--tag`，且不接受额外参数。
 
 ## 目录规划
 

@@ -15,13 +15,13 @@ usage() {
 
 命令:
   list                    列出所有 Dockerfile 对应的 Docker tag
-  build [--tag TAG]       构建指定镜像；未指定 --tag 时构建全部镜像
-  push-hub [--tag TAG]    推送到 Docker Hub；未指定 --tag 时推送全部镜像
-  push-aliyun [--tag TAG] 推送到阿里云；未指定 --tag 时推送全部镜像
+  build --tag TAG         构建指定镜像
+  push-hub --tag TAG      推送指定镜像到 Docker Hub
+  push-aliyun --tag TAG   推送指定镜像到阿里云
   help                    显示此帮助文档
 
 选项:
-  --tag TAG               指定要操作的 Docker tag
+  --tag TAG               指定要操作的 Docker tag（构建和推送命令必填）
 EOF
 }
 
@@ -77,16 +77,6 @@ find_dockerfile_by_tag() {
     printf '%s\n' "${matched_file}"
 }
 
-select_dockerfiles() {
-    local requested_tag="$1"
-
-    if [[ -n "${requested_tag}" ]]; then
-        SELECTED_DOCKERFILES=("$(find_dockerfile_by_tag "${requested_tag}")")
-    else
-        SELECTED_DOCKERFILES=("${DOCKERFILES[@]}")
-    fi
-}
-
 parse_tag_option() {
     TAG=""
 
@@ -94,6 +84,7 @@ parse_tag_option() {
         case "$1" in
             --tag)
                 (($# >= 2)) || die "--tag 缺少参数"
+                [[ -n "$2" && "$2" != --* ]] || die "--tag 缺少参数"
                 [[ -z "${TAG}" ]] || die "--tag 只能指定一次"
                 TAG="$2"
                 shift 2
@@ -109,6 +100,8 @@ parse_tag_option() {
                 ;;
         esac
     done
+
+    [[ -n "${TAG}" ]] || die "必须指定 --tag TAG"
 }
 
 list_images() {
@@ -176,7 +169,7 @@ main() {
         build|push-hub|push-aliyun)
             parse_tag_option "$@"
             load_dockerfiles
-            select_dockerfiles "${TAG}"
+            SELECTED_DOCKERFILES=("$(find_dockerfile_by_tag "${TAG}")")
             case "${command}" in
                 build) build_images ;;
                 push-hub) push_images "${HUB_NAMESPACE}" ;;
