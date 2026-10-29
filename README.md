@@ -6,7 +6,7 @@
 
 ### `dev:claude-in-one`
 
-基于 Ubuntu `24.04` 的 AMD64 开发环境镜像，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.270`。构建完成后将 APT 软件源设置为清华大学开源软件镜像站。
+基于 Ubuntu `24.04` 的开发环境镜像，支持 `linux/amd64` 和 `linux/arm64`，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.270`。构建时按目标架构下载对应工具，依赖安装完成后将 APT 软件源设置为清华大学开源软件镜像站（AMD64 使用 `ubuntu`，ARM64 使用 `ubuntu-ports`）。
 
 可使用 `ssh`、`scp` 和 `sftp` 命令；需要远程登录容器时，需自行配置并启动 `sshd`。
 
@@ -24,7 +24,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 
 ### `dev:claude-multica`
 
-基于 `alanway/dev:claude-in-one` 的 AMD64 镜像，增加 [Multica CLI `v0.7.1`](https://github.com/multica-ai/multica/releases/tag/v0.7.1)。构建时从官方 GitHub Releases 下载 Linux AMD64 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
+基于 `alanway/dev:claude-in-one` 的镜像，支持 `linux/amd64` 和 `linux/arm64`，增加 [Multica CLI `v0.7.1`](https://github.com/multica-ai/multica/releases/tag/v0.7.1)。构建时从官方 GitHub Releases 下载对应目标架构的 Linux 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
 
 继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
 
@@ -219,6 +219,18 @@ docker run --rm \
 ```
 
 `build`、`push-hub` 和 `push-aliyun` 必须提供非空的 `--tag TAG`（也支持 `--tag=TAG`），每次只能指定一个 tag。省略 `--tag` 会报错退出，不会批量构建或推送所有镜像。tag 格式为 `<分类>:<目录名>`，对应 `docker/<分类>/<目录名>/Dockerfile`，可通过 `list` 查看。`list` 和 `help` 不需要 `--tag`，且不接受额外参数。
+
+`scripts/d.sh build` 构建当前 Docker 环境的默认架构。要发布 `dev:claude-in-one` 和 `dev:claude-multica` 的双架构镜像，使用已配置好 ARM64 构建能力的 Buildx builder，登录目标仓库后执行：
+
+```shell
+# 先发布基础镜像，再构建依赖它的 Multica 镜像
+docker buildx build --platform linux/amd64,linux/arm64 \
+    --tag alanway/dev:claude-in-one --push docker/dev/claude-in-one
+docker buildx build --platform linux/amd64,linux/arm64 \
+    --tag alanway/dev:claude-multica --push docker/dev/claude-multica
+```
+
+GitHub Actions 对这两个镜像使用 Buildx 和 QEMU，将双架构镜像直接推送到 Docker Hub 和阿里云；两者同时变更时，先完成 `claude-in-one` 的构建和推送，再构建 `claude-multica`。发布后，`docker pull` 会自动选择与宿主机匹配的架构。
 
 ## 目录规划
 

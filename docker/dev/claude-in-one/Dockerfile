@@ -3,8 +3,9 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v8"
+    org.opencontainers.image.version="v9"
 
+ARG TARGETARCH
 ARG CADDY_VERSION="2.11.4"
 ARG FNM_VERSION="1.39.0"
 ARG NODE_VERSION="24.21.0"
@@ -22,6 +23,12 @@ ENV FNM_DIR="/opt/fnm" \
     PATH="/opt/fnm/aliases/default/bin:/opt/java/bin:/opt/maven/bin:${PATH}"
 
 RUN set -eux; \
+    target_arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
+    case "${target_arch}" in \
+        amd64) fnm_asset="fnm-linux.zip"; uv_arch="x86_64"; java_arch="x64"; claude_arch="x64" ;; \
+        arm64) fnm_asset="fnm-arm64.zip"; uv_arch="aarch64"; java_arch="aarch64"; claude_arch="arm64" ;; \
+        *) echo "Unsupported architecture: ${target_arch}" >&2; exit 1 ;; \
+    esac; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -38,7 +45,7 @@ RUN set -eux; \
     download_dir="$(mktemp -d)"; \
     curl --fail --location \
         --output "${download_dir}/fnm.zip" \
-        "https://github.com/Schniz/fnm/releases/download/v${FNM_VERSION}/fnm-linux.zip"; \
+        "https://github.com/Schniz/fnm/releases/download/v${FNM_VERSION}/${fnm_asset}"; \
     unzip -q "${download_dir}/fnm.zip" -d "${download_dir}/fnm"; \
     if [ -f "${download_dir}/fnm/fnm" ]; then \
         install -m 0755 "${download_dir}/fnm/fnm" /usr/local/bin/fnm; \
@@ -49,13 +56,13 @@ RUN set -eux; \
     fnm default "${NODE_VERSION}"; \
     curl --fail --location \
         --output "${download_dir}/uv.tar.gz" \
-        "https://releases.astral.sh/github/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz"; \
+        "https://releases.astral.sh/github/uv/releases/download/${UV_VERSION}/uv-${uv_arch}-unknown-linux-gnu.tar.gz"; \
     install -d -m 0755 /opt/uv; \
     tar --extract --gzip --file "${download_dir}/uv.tar.gz" \
         --directory /opt/uv --strip-components=1; \
     curl --fail --location \
         --output "${download_dir}/temurin.tar.gz" \
-        "https://github.com/adoptium/temurin8-binaries/releases/download/jdk${TEMURIN_VERSION}/OpenJDK8U-jdk_x64_linux_hotspot_${TEMURIN_ARCHIVE_VERSION}.tar.gz"; \
+        "https://github.com/adoptium/temurin8-binaries/releases/download/jdk${TEMURIN_VERSION}/OpenJDK8U-jdk_${java_arch}_linux_hotspot_${TEMURIN_ARCHIVE_VERSION}.tar.gz"; \
     install -d -m 0755 "${JAVA_HOME}"; \
     tar --extract --gzip --file "${download_dir}/temurin.tar.gz" \
         --directory "${JAVA_HOME}" --strip-components=1; \
@@ -67,17 +74,17 @@ RUN set -eux; \
         --directory "${MAVEN_HOME}" --strip-components=1; \
     curl --fail --location \
         --output "${download_dir}/code-server.deb" \
-        "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb"; \
+        "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${target_arch}.deb"; \
     apt-get install -y --no-install-recommends "${download_dir}/code-server.deb"; \
     curl --fail --location \
         --output "${download_dir}/caddy.tar.gz" \
-        "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"; \
+        "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_${target_arch}.tar.gz"; \
     tar --extract --gzip --file "${download_dir}/caddy.tar.gz" \
         --directory "${download_dir}" caddy; \
     install -m 0755 "${download_dir}/caddy" /usr/local/bin/caddy; \
     curl --fail --location \
         --output "${download_dir}/claude.tar.gz" \
-        "https://github.com/anthropics/claude-code/releases/download/v${CLAUDE_CODE_VERSION}/claude-linux-x64.tar.gz"; \
+        "https://github.com/anthropics/claude-code/releases/download/v${CLAUDE_CODE_VERSION}/claude-linux-${claude_arch}.tar.gz"; \
     tar --extract --gzip --file "${download_dir}/claude.tar.gz" \
         --directory "${download_dir}"; \
     install -m 0755 "${download_dir}/claude" /usr/local/bin/claude; \
@@ -95,6 +102,9 @@ COPY code-server.yaml /data/config/code-server-example.yml
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN set -eux; \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        sed -i 's|/ubuntu/|/ubuntu-ports/|g' /etc/apt/sources.list.d/ubuntu.sources; \
+    fi; \
     chmod 0755 /usr/local/bin/entrypoint.sh; \
     ln --symbolic /usr/local/bin/entrypoint.sh /data/entrypoint.sh; \
     printf '%s\n' 'eval "$(fnm env --use-on-cd --shell bash)"' >> /home/dev/.bashrc; \
