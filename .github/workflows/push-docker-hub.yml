@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - "docker/**/Dockerfile"
+      - ".github/workflows/push-docker-hub.yml"
 
 permissions:
   contents: read
@@ -71,8 +72,13 @@ jobs:
             fi
           done
 
+          # Export settings affect both multi-platform images even without Dockerfile changes.
+          if ! git diff --quiet "${base}" "${AFTER_SHA}" -- .github/workflows/push-docker-hub.yml; then
+            images+=("dev:claude-in-one" "dev:claude-multica")
+          fi
+
           images_json="$(printf '%s\n' "${images[@]}" | jq -R -s -c \
-            'split("\n") | map(select(length > 0))')"
+            'split("\n") | map(select(length > 0)) | unique')"
           echo "Changed images: ${images_json}"
 
           # Keep the base image before claude-multica, which pulls it from Docker Hub.
@@ -116,7 +122,7 @@ jobs:
           username: ${{ secrets.DOCKER_ALIYUN_USER }}
           password: ${{ secrets.DOCKER_ALIYUN_PASSWORD }}
 
-      - name: Build and push AMD64 and ARM64 images in dependency order
+      - name: Publish Docker Hub multi-platform and Aliyun AMD64 images in dependency order
         shell: bash
         env:
           CLAUDE_IMAGES: ${{ needs.changes.outputs.claude_images }}
@@ -127,10 +133,21 @@ jobs:
             image_dir="docker/${image_tag%%:*}/${image_tag#*:}"
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
+              --provenance=false \
+              --sbom=false \
               --tag "alanway/${image_tag}" \
+              --file "${image_dir}/Dockerfile" \
+              --output type=registry,oci-mediatypes=false \
+              "${image_dir}"
+
+            # Reuse the builder cache; Aliyun receives only AMD64, without OCI attestations.
+            docker buildx build \
+              --platform linux/amd64 \
+              --provenance=false \
+              --sbom=false \
               --tag "registry.cn-hangzhou.aliyuncs.com/alanwei/${image_tag}" \
               --file "${image_dir}/Dockerfile" \
-              --push \
+              --output type=registry,oci-mediatypes=false \
               "${image_dir}"
           done
 

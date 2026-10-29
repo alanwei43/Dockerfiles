@@ -13,10 +13,10 @@
 默认以非 root 用户 `dev` 运行，用户主目录和预置配置位于 `/home/dev`。`/app`、`/data` 和 fnm 安装目录归 `dev` 所有；使用宿主机目录挂载时，需要保证 `dev` 对挂载目录有相应的读写权限。
 
 ```shell
-# Docker Hub
+# Docker Hub（AMD64 / ARM64）
 docker pull alanway/dev:claude-in-one
 
-# 阿里云容器镜像服务
+# 阿里云容器镜像服务（仅 AMD64）
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 ```
 
@@ -29,10 +29,10 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
 
 ```shell
-# Docker Hub
+# Docker Hub（AMD64 / ARM64）
 docker pull alanway/dev:claude-multica
 
-# 阿里云容器镜像服务
+# 阿里云容器镜像服务（仅 AMD64）
 docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-multica
 
 # 调用 Multica CLI
@@ -225,12 +225,20 @@ docker run --rm \
 ```shell
 # 先发布基础镜像，再构建依赖它的 Multica 镜像
 docker buildx build --platform linux/amd64,linux/arm64 \
-    --tag alanway/dev:claude-in-one --push docker/dev/claude-in-one
+    --provenance=false --sbom=false \
+    --tag alanway/dev:claude-in-one \
+    --output type=registry,oci-mediatypes=false docker/dev/claude-in-one
 docker buildx build --platform linux/amd64,linux/arm64 \
-    --tag alanway/dev:claude-multica --push docker/dev/claude-multica
+    --provenance=false --sbom=false \
+    --tag alanway/dev:claude-multica \
+    --output type=registry,oci-mediatypes=false docker/dev/claude-multica
 ```
 
-GitHub Actions 对这两个镜像使用 Buildx 和 QEMU，将双架构镜像直接推送到 Docker Hub 和阿里云；两者同时变更时，先完成 `claude-in-one` 的构建和推送，再构建 `claude-multica`。发布后，`docker pull` 会自动选择与宿主机匹配的架构。
+GitHub Actions 对这两个镜像使用 Buildx 和 QEMU，按仓库分别发布：Docker Hub 提供 `linux/amd64` 和 `linux/arm64`，阿里云仅提供 `linux/amd64`。两者同时变更时，先完成 `claude-in-one` 的构建和推送，再构建 `claude-multica`。同一 Buildx builder 会复用构建缓存。ARM64 用户请从 Docker Hub 拉取，`docker pull` 会自动选择与宿主机匹配的架构。
+
+为兼容阿里云仓库，发布时关闭 provenance 和 SBOM 证明附件，并显式导出 Docker 清单格式，避免仓库拒绝 `application/vnd.oci.empty.v1+json`。修改发布工作流本身也会触发这两个镜像按依赖顺序重建。
+
+手动发布到阿里云时，使用 `--platform linux/amd64` 构建，并将 `--tag` 设置为对应的阿里云地址。`scripts/d.sh push-aliyun` 也会检查这两个镜像的本地架构，并通过 `docker push --platform linux/amd64` 仅推送 AMD64 清单；该命令需要支持 [Docker API 1.46+](https://docs.docker.com/reference/cli/docker/image/push/) 的客户端和服务端。
 
 ## 目录规划
 

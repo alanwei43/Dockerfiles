@@ -140,13 +140,26 @@ push_images() {
     local dockerfile
     local image_tag
     local remote_tag
+    local image_platform
+    local -a push_options
 
     for dockerfile in "${SELECTED_DOCKERFILES[@]}"; do
         image_tag="$(docker_tag_for_file "${dockerfile}")"
         remote_tag="${namespace}/${image_tag}"
+        push_options=()
+        if [[ "${namespace}" == "${ALIYUN_NAMESPACE}" ]]; then
+            case "${image_tag}" in
+                dev:claude-in-one|dev:claude-multica)
+                    image_platform="$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "${image_tag}")"
+                    [[ "${image_platform}" == "linux/amd64" ]] || \
+                        die "${image_tag} 仅允许向阿里云推送 linux/amd64 镜像，当前镜像为 ${image_platform}"
+                    push_options=(--platform linux/amd64)
+                    ;;
+            esac
+        fi
         printf '推送镜像 %s -> %s\n' "${image_tag}" "${remote_tag}"
         docker tag "${image_tag}" "${remote_tag}"
-        docker push "${remote_tag}"
+        docker push "${push_options[@]}" "${remote_tag}"
     done
 }
 
