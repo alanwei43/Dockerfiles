@@ -6,7 +6,7 @@
 
 ### `dev:claude-in-one`
 
-基于 Ubuntu `24.04` 的开发环境镜像，支持 `linux/amd64` 和 `linux/arm64`，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.270`。构建时按目标架构下载对应工具，依赖安装完成后将 APT 软件源设置为清华大学开源软件镜像站（AMD64 使用 `ubuntu`，ARM64 使用 `ubuntu-ports`）。
+基于 Ubuntu `24.04` 的开发环境镜像，支持 `linux/amd64` 和 `linux/arm64`，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.312`。构建时按目标架构下载对应工具，依赖安装完成后将 APT 软件源设置为清华大学开源软件镜像站（AMD64 使用 `ubuntu`，ARM64 使用 `ubuntu-ports`）。
 
 可使用 `ssh`、`scp` 和 `sftp` 命令；需要远程登录容器时，需自行配置并启动 `sshd`。
 

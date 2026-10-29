@@ -3,14 +3,14 @@ FROM ubuntu:24.04
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-03" \
-    org.opencontainers.image.version="v9"
+    org.opencontainers.image.version="v10"
 
 ARG TARGETARCH
 ARG CADDY_VERSION="2.11.4"
 ARG FNM_VERSION="1.39.0"
 ARG NODE_VERSION="24.21.0"
 ARG UV_VERSION="0.12.13"
-ARG CLAUDE_CODE_VERSION="2.1.270"
+ARG CLAUDE_CODE_VERSION="2.1.312"
 ARG CODE_SERVER_VERSION="4.137.0"
 ARG TEMURIN_VERSION="8u504-b01"
 ARG TEMURIN_ARCHIVE_VERSION="8u504b01"
