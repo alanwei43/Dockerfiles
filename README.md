@@ -169,77 +169,9 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/runtime:python-3.12
 
 ### `service:caddy-webdav`
 
-基于 Caddy `2.11.4` 官方镜像，使用 xcaddy 编译并加入 [caddy-webdav](https://github.com/mholt/caddy-webdav) WebDAV 处理模块和 [caddy-dns/cloudflare `v0.2.4`](https://github.com/caddy-dns/cloudflare/tree/v0.2.4) DNS 模块，支持通过 Cloudflare 进行 DNS-01 验证，自动申请和续期 HTTPS 证书。
+基于 Caddy `2.11.4` 官方镜像，内置 WebDAV 模块和 Cloudflare DNS 插件，支持 DNS-01 验证及 HTTPS 证书自动申请、续期。
 
-```shell
-# Docker Hub
-docker pull alanway/service:caddy-webdav
-
-# 阿里云容器镜像服务
-docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/service:caddy-webdav
-```
-
-使用时挂载 Caddyfile 和可写的数据目录。例如：
-
-```Caddyfile
-{
-    order webdav before file_server
-}
-
-http:// {
-    root * /data/webdav
-    webdav
-}
-```
-
-```shell
-docker run --rm \
-    --publish 127.0.0.1:8080:80 \
-    --mount type=bind,source="$(pwd)/Caddyfile",target=/etc/caddy/Caddyfile,readonly \
-    --mount type=bind,source="$(pwd)/data",target=/data/webdav \
-    alanway/service:caddy-webdav
-```
-
-#### DNS-01 配置示例（Cloudflare）
-
-域名的权威 DNS 需托管在 Cloudflare。创建具有目标域名 `Zone.Zone:Read` 和 `Zone.DNS:Edit` 权限的 API Token，并在运行时通过 `CF_API_TOKEN` 环境变量传入。[插件配置及权限说明](https://github.com/caddy-dns/cloudflare/blob/v0.2.4/README.md#configuration)
-
-将以下内容保存为 `Caddyfile`，把 `dav.example.com` 替换为自己的域名：
-
-```Caddyfile
-{
-    order webdav before file_server
-}
-
-dav.example.com {
-    tls {
-        dns cloudflare {env.CF_API_TOKEN}
-    }
-
-    root * /data/webdav
-    webdav
-}
-```
-
-```shell
-export CF_API_TOKEN='替换为 Cloudflare API Token'
-mkdir -p data
-
-docker run --rm \
-    --publish 443:443 \
-    --env CF_API_TOKEN \
-    --mount type=bind,source="$(pwd)/Caddyfile",target=/etc/caddy/Caddyfile,readonly \
-    --mount type=bind,source="$(pwd)/data",target=/data/webdav \
-    --mount type=volume,source=caddy-webdav-data,target=/data \
-    --mount type=volume,source=caddy-webdav-config,target=/config \
-    alanway/service:caddy-webdav
-```
-
-`/data` 命名卷持久保存证书、私钥和 ACME 账户信息，`/config` 命名卷保存 Caddy 配置状态；宿主机的 `data` 目录单独保存 WebDAV 文件。
-
-DNS-01 通过创建 DNS TXT 记录完成验证，无需为证书验证开放入站 80/443 端口；上例发布 443 端口用于访问 WebDAV。容器需能访问 ACME 服务、Cloudflare API 和公共 DNS。客户端使用的域名仍需解析到可访问的服务地址。也可将站点域名改为 `*.example.com` 申请通配符证书。[Caddy DNS 验证说明](https://caddyserver.com/docs/automatic-https#dns-challenge)
-
-其他 DNS 服务商需要在 Dockerfile 的 `xcaddy build` 中加入对应的 `caddy-dns` 插件，并按插件文档调整 `tls` 配置与运行时凭据。当前镜像内置的 DNS 插件为 Cloudflare。
+镜像地址、WebDAV 与 DNS-01 的 Docker / Compose 配置示例见 [使用文档](docker/service/caddy-webdav/README.md)。
 
 ## 本地构建与推送
 
