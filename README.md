@@ -6,7 +6,7 @@
 
 ### `dev:claude-in-one`
 
-基于 Ubuntu `24.04` 的开发环境镜像，支持 `linux/amd64` 和 `linux/arm64`，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 Claude Code `2.1.312`。构建时按目标架构下载对应工具，依赖安装完成后将 APT 软件源设置为清华大学开源软件镜像站（AMD64 使用 `ubuntu`，ARM64 使用 `ubuntu-ports`）。
+基于 Ubuntu `24.04` 的开发环境镜像，支持 `linux/amd64` 和 `linux/arm64`，预装 Caddy `2.11.4`、Temurin JDK 8、Maven `3.6.3`、fnm `1.39.0`、Node.js `24.21.0`、Python 3、uv `0.12.13`、code-server `4.137.0`、tmux、OpenSSH 客户端和服务端，以及 [Claude Code `2.1.316`](https://github.com/anthropics/claude-code/releases/tag/v2.1.316)。构建时按目标架构下载对应工具，依赖安装完成后将 APT 软件源设置为清华大学开源软件镜像站（AMD64 使用 `ubuntu`，ARM64 使用 `ubuntu-ports`）。
 
 可使用 `ssh`、`scp` 和 `sftp` 命令；需要远程登录容器时，需自行配置并启动 `sshd`。
 
@@ -24,7 +24,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 
 ### `dev:claude-multica`
 
-基于 `alanway/dev:claude-in-one` 的镜像，支持 `linux/amd64` 和 `linux/arm64`，增加 [Multica CLI `v0.7.1`](https://github.com/multica-ai/multica/releases/tag/v0.7.1)。构建时从官方 GitHub Releases 下载对应目标架构的 Linux 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
+基于 `alanway/dev:claude-in-one` 的镜像，支持 `linux/amd64` 和 `linux/arm64`，增加 [Multica CLI `v0.7.2`](https://github.com/multica-ai/multica/releases/tag/v0.7.2)。构建时从官方 GitHub Releases 下载对应目标架构的 Linux 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
 
 继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
 
