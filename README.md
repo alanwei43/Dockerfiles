@@ -26,7 +26,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/alanwei/dev:claude-in-one
 
 基于 `alanway/dev:claude-in-one` 的镜像，支持 `linux/amd64` 和 `linux/arm64`，增加 [Multica CLI `v0.7.2`](https://github.com/multica-ai/multica/releases/tag/v0.7.2)。构建时从官方 GitHub Releases 下载对应目标架构的 Linux 压缩包，将 `multica` 安装到 `/usr/local/bin/multica`；可通过构建参数 `MULTICA_VERSION` 指定版本（不带 `v` 前缀）。
 
-继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
+继承基础镜像的 `dev` 用户、预置工具和配置，默认执行 `multica daemon start --foreground`，以前台模式运行 Multica 守护进程。镜像默认设置 `DO_NOT_TRACK=true` 和 `ANALYTICS_DISABLED=true`，禁用 Multica 遥测与统计。可在 `docker run` 命令末尾提供其他命令来覆盖默认启动命令。
 
 ```shell
 # Docker Hub（AMD64 / ARM64）
