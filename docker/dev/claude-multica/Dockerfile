@@ -3,10 +3,10 @@ FROM alanway/dev:claude-in-one
 LABEL maintainer="Alan Wei" \
     org.opencontainers.image.source="https://github.com/alanwei43/Dockerfiles" \
     org.opencontainers.image.created="2026-10-28" \
-    org.opencontainers.image.version="v8"
+    org.opencontainers.image.version="v10"
 
 ARG TARGETARCH
-ARG MULTICA_VERSION="0.11.1"
+ARG MULTICA_VERSION="0.13.0"
 
 ENV DO_NOT_TRACK=true \
     ANALYTICS_DISABLED=true
